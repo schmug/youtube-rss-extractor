@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube RSS Extractor",
+  "version": "1.0.2",
+  "description": "Get the RSS feed for the current YouTube channel or video.",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "host_permissions": [
+    "https://www.youtube.com/*"
+  ],
+  "action": {
+    "default_popup": "index.html",
+    "default_title": "Get YouTube RSS"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ]
+}
