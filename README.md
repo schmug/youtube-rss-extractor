@@ -54,6 +54,49 @@ Once the channel ID is found, it constructs the RSS URL:
 https://www.youtube.com/feeds/videos.xml?channel_id=UC...
 ```
 
+## Manual Method (No Extension)
+
+If you prefer not to install the extension, you can get YouTube RSS feeds manually:
+
+### Method 1: From Channel Page Source
+
+1. Go to any YouTube channel page
+2. Right-click → **View Page Source** (or press `Ctrl+U`)
+3. Search for `channel_id` (press `Ctrl+F`)
+4. Copy the ID that starts with `UC` (e.g., `UCxxxxxxxxxxxxxxxxxxxxxx`)
+5. Construct the RSS URL:
+   ```
+   https://www.youtube.com/feeds/videos.xml?channel_id=YOUR_CHANNEL_ID
+   ```
+
+### Method 2: From Video Page
+
+1. Go to any video from the channel
+2. Click the channel name to go to their channel page
+3. The URL will be one of:
+   - `youtube.com/channel/UCxxxxxx` → The `UCxxxxxx` part is the channel ID
+   - `youtube.com/@username` → View page source and search for `channel_id`
+4. Use the channel ID in the RSS URL format above
+
+### Method 3: Browser Console
+
+On any YouTube video or channel page, open Developer Tools (`F12`) and run:
+```javascript
+document.querySelector('meta[itemprop="channelId"]')?.content
+  || document.querySelector('link[rel="alternate"][type="application/rss+xml"]')?.href.match(/channel_id=([^&]+)/)?.[1]
+```
+
+### RSS URL Format
+
+```
+https://www.youtube.com/feeds/videos.xml?channel_id=CHANNEL_ID
+```
+
+Example for a channel with ID `UC_x5XG1OV2P6uZZ5FSM9Ttw`:
+```
+https://www.youtube.com/feeds/videos.xml?channel_id=UC_x5XG1OV2P6uZZ5FSM9Ttw
+```
+
 ## Development
 
 ### Project Structure
