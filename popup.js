@@ -195,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialization Logic
   async function init() {
     // Check for Chrome API
-    if (typeof chrome === 'undefined' || !chrome.tabs) {
+    if (typeof chrome === 'undefined' || !chrome.tabs || !chrome.scripting) {
        state.view = 'ERROR';
        state.error = 'Extension API not found. Are you running as an extension?';
        render();
@@ -219,72 +219,68 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // Request Details from Content Script
+    // Inject content script and get channel details
     try {
-        chrome.tabs.sendMessage(tab.id, { type: 'GET_CHANNEL_DETAILS' }, async (response) => {
-            // Check for runtime errors (e.g., content script not loaded yet)
-            if (chrome.runtime.lastError) {
-                console.error(chrome.runtime.lastError);
-                state.view = 'ERROR';
-                state.error = 'Please refresh the YouTube page and try again.';
-                render();
-                return;
-            }
-
-            if (response && response.rssUrl) {
-                state.channel = {
-                    id: response.channelId || 'unknown',
-                    name: response.channelName || 'YouTube Channel'
-                };
-                state.rssUrl = response.rssUrl;
-                
-                // Fetch and Parse RSS
-                try {
-                    const rssRes = await fetch(response.rssUrl);
-                    
-                    if (!rssRes.ok) throw new Error(`Fetch failed: ${rssRes.status}`);
-                    
-                    const text = await rssRes.text();
-                    const parser = new DOMParser();
-                    const xmlDoc = parser.parseFromString(text, "text/xml");
-                    
-                    const entries = Array.from(xmlDoc.querySelectorAll("entry"));
-                    
-                    state.items = entries.map(entry => {
-                         const mediaGroup = entry.getElementsByTagName("media:group")[0];
-                         const thumbnail = mediaGroup?.getElementsByTagName("media:thumbnail")[0]?.getAttribute("url") || "";
-                         const linkNode = entry.getElementsByTagName("link")[0];
-                         const href = linkNode?.getAttribute("href") || "";
-                         
-                         return {
-                             id: entry.getElementsByTagName("id")[0]?.textContent,
-                             title: entry.getElementsByTagName("title")[0]?.textContent,
-                             link: href,
-                             published: entry.getElementsByTagName("published")[0]?.textContent,
-                             thumbnail: thumbnail
-                         };
-                    });
-                    
-                    state.view = 'SUCCESS';
-                    render();
-
-                } catch (e) {
-                    console.error("RSS Error:", e);
-                    state.view = 'ERROR';
-                    state.error = 'Found Channel, but failed to load RSS feed.';
-                    render();
-                }
-
-            } else {
-                state.view = 'ERROR';
-                state.error = 'Could not detect a Channel ID on this page.';
-                render();
-            }
+        const results = await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            files: ['content.js']
         });
+
+        const response = results?.[0]?.result;
+
+        if (response && response.rssUrl) {
+            state.channel = {
+                id: response.channelId || 'unknown',
+                name: response.channelName || 'YouTube Channel'
+            };
+            state.rssUrl = response.rssUrl;
+
+            // Fetch and Parse RSS
+            try {
+                const rssRes = await fetch(response.rssUrl);
+
+                if (!rssRes.ok) throw new Error(`Fetch failed: ${rssRes.status}`);
+
+                const text = await rssRes.text();
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(text, "text/xml");
+
+                const entries = Array.from(xmlDoc.querySelectorAll("entry"));
+
+                state.items = entries.map(entry => {
+                     const mediaGroup = entry.getElementsByTagName("media:group")[0];
+                     const thumbnail = mediaGroup?.getElementsByTagName("media:thumbnail")[0]?.getAttribute("url") || "";
+                     const linkNode = entry.getElementsByTagName("link")[0];
+                     const href = linkNode?.getAttribute("href") || "";
+
+                     return {
+                         id: entry.getElementsByTagName("id")[0]?.textContent,
+                         title: entry.getElementsByTagName("title")[0]?.textContent,
+                         link: href,
+                         published: entry.getElementsByTagName("published")[0]?.textContent,
+                         thumbnail: thumbnail
+                     };
+                });
+
+                state.view = 'SUCCESS';
+                render();
+
+            } catch (e) {
+                console.error("RSS Error:", e);
+                state.view = 'ERROR';
+                state.error = 'Found Channel, but failed to load RSS feed.';
+                render();
+            }
+
+        } else {
+            state.view = 'ERROR';
+            state.error = 'Could not detect a Channel ID on this page.';
+            render();
+        }
     } catch (e) {
         console.error("Init Error:", e);
         state.view = 'ERROR';
-        state.error = 'An unexpected error occurred.';
+        state.error = 'Could not access page. Try refreshing YouTube.';
         render();
     }
   }
