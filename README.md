@@ -6,6 +6,18 @@ A Chrome extension that extracts RSS feed URLs from YouTube channels and videos.
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-blue)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
+## Why RSS?
+
+[RSS (Really Simple Syndication)](https://en.wikipedia.org/wiki/RSS) lets you follow YouTube channels without:
+
+- **No algorithm** - See every video in chronological order, not what YouTube thinks you want
+- **No account required** - Subscribe without logging in or being tracked
+- **No notifications** - Check your feed when you want, not when YouTube wants
+- **One place for everything** - Combine YouTube with blogs, news, and podcasts in one reader
+- **No distractions** - Skip the homepage, comments, and recommended rabbit holes
+
+Popular RSS readers: [Feedly](https://feedly.com), [Inoreader](https://inoreader.com), [NewsBlur](https://newsblur.com), [Miniflux](https://miniflux.app)
+
 ## Features
 
 - Extract RSS feed URL from any YouTube channel or video page
@@ -35,11 +47,7 @@ A Chrome extension that extracts RSS feed URLs from YouTube channels and videos.
 
 ## Screenshots
 
-| Popup with RSS Feed | Badge Indicator |
-|---------------------|-----------------|
-| ![Popup](screenshots/popup.png) | ![Badge](screenshots/badge.png) |
-
-> To add screenshots: Take screenshots of the extension in action and save them to the `screenshots/` directory.
+*Screenshots coming soon* - To contribute: take screenshots of the extension in action and add them to the `screenshots/` directory.
 
 ## How It Works
 
