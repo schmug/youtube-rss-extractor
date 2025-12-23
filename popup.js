@@ -32,11 +32,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // Render Function
   function render() {
     root.innerHTML = '';
-    
+
     // Main Layout Container
     const container = document.createElement('div');
     container.className = 'app-container';
-    
+
     // Header
     const header = document.createElement('header');
     header.className = 'header';
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Main Content Area
     const main = document.createElement('main');
     main.className = 'main-content';
-    
+
     if (state.view === 'LOADING') {
       main.innerHTML = `
         <div class="state-container">
@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `;
     } else if (state.view === 'NOT_YOUTUBE') {
-       main.innerHTML = `
+      main.innerHTML = `
         <div class="state-container">
           <div class="state-icon">
              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
        `;
     } else if (state.view === 'ERROR') {
-       main.innerHTML = `
+      main.innerHTML = `
         <div class="state-container">
            <div class="state-icon" style="color: #ef4444; background-color: rgba(239, 68, 68, 0.1)">
              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </button>
         </div>
       `;
-      
+
       // Copy Event Listener
       const copyBtn = rssCard.querySelector('.copy-btn');
       const input = rssCard.querySelector('.rss-input');
@@ -127,11 +127,11 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       main.appendChild(rssCard);
-      
+
       // Feed List
       const feedList = document.createElement('div');
       feedList.className = 'feed-list';
-      
+
       if (state.items.length === 0) {
         feedList.innerHTML = `<div class="empty-msg">No videos found in feed.</div>`;
       } else {
@@ -139,48 +139,48 @@ document.addEventListener('DOMContentLoaded', () => {
         listHeader.className = 'feed-header';
         listHeader.textContent = 'Latest Videos';
         feedList.appendChild(listHeader);
-        
+
         state.items.forEach(item => {
-           const link = document.createElement('a');
-           link.className = 'feed-item';
-           // Validate URL to prevent javascript: protocol attacks
-           if (item.link && item.link.startsWith('http')) {
-             link.href = item.link;
-           }
-           link.target = '_blank';
-           link.rel = 'noopener noreferrer';
+          const link = document.createElement('a');
+          link.className = 'feed-item';
+          // Validate URL to prevent javascript: protocol attacks
+          if (item.link && item.link.startsWith('http')) {
+            link.href = item.link;
+          }
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
 
-           const date = new Date(item.published);
-           const dateStr = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(date);
+          const date = new Date(item.published);
+          const dateStr = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(date);
 
-           // Build DOM safely without innerHTML
-           const thumbContainer = document.createElement('div');
-           thumbContainer.className = 'thumbnail-container';
-           const img = document.createElement('img');
-           img.src = item.thumbnail || '';
-           img.alt = 'Thumb';
-           img.className = 'thumbnail-img';
-           thumbContainer.appendChild(img);
+          // Build DOM safely without innerHTML
+          const thumbContainer = document.createElement('div');
+          thumbContainer.className = 'thumbnail-container';
+          const img = document.createElement('img');
+          img.src = item.thumbnail || '';
+          img.alt = 'Thumb';
+          img.className = 'thumbnail-img';
+          thumbContainer.appendChild(img);
 
-           const contentDiv = document.createElement('div');
-           contentDiv.className = 'item-content';
-           const title = document.createElement('h4');
-           title.className = 'item-title';
-           title.textContent = item.title || '';
-           const dateSpan = document.createElement('span');
-           dateSpan.className = 'item-date';
-           dateSpan.textContent = dateStr;
-           contentDiv.appendChild(title);
-           contentDiv.appendChild(dateSpan);
+          const contentDiv = document.createElement('div');
+          contentDiv.className = 'item-content';
+          const title = document.createElement('h4');
+          title.className = 'item-title';
+          title.textContent = item.title || '';
+          const dateSpan = document.createElement('span');
+          dateSpan.className = 'item-date';
+          dateSpan.textContent = dateStr;
+          contentDiv.appendChild(title);
+          contentDiv.appendChild(dateSpan);
 
-           link.appendChild(thumbContainer);
-           link.appendChild(contentDiv);
-           feedList.appendChild(link);
+          link.appendChild(thumbContainer);
+          link.appendChild(contentDiv);
+          feedList.appendChild(link);
         });
       }
       main.appendChild(feedList);
     }
-    
+
     container.appendChild(main);
 
     // Footer
@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
     footer.className = 'footer';
     footer.textContent = 'Made with Vanilla JS';
     container.appendChild(footer);
-    
+
     root.appendChild(container);
   }
 
@@ -196,10 +196,10 @@ document.addEventListener('DOMContentLoaded', () => {
   async function init() {
     // Check for Chrome API
     if (typeof chrome === 'undefined' || !chrome.tabs || !chrome.scripting) {
-       state.view = 'ERROR';
-       state.error = 'Extension API not found. Are you running as an extension?';
-       render();
-       return;
+      state.view = 'ERROR';
+      state.error = 'Extension API not found. Are you running as an extension?';
+      render();
+      return;
     }
 
     // Get Active Tab
@@ -207,86 +207,95 @@ document.addEventListener('DOMContentLoaded', () => {
     const tab = tabs[0];
 
     if (!tab || !tab.id) {
-        state.view = 'ERROR';
-        state.error = 'No active tab found.';
-        render();
-        return;
+      state.view = 'ERROR';
+      state.error = 'No active tab found.';
+      render();
+      return;
     }
 
     if (!tab.url || !tab.url.includes('youtube.com')) {
-        state.view = 'NOT_YOUTUBE';
-        render();
-        return;
+      state.view = 'NOT_YOUTUBE';
+      render();
+      return;
     }
 
     // Inject content script and get channel details
     try {
-        const results = await chrome.scripting.executeScript({
-            target: { tabId: tab.id },
-            files: ['content.js']
-        });
+      const results = await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ['content.js']
+      });
 
-        // Handle script injection failures
-        if (!results || results.length === 0) {
-            throw new Error('Script injection failed - no results returned');
-        }
+      // Handle script injection failures
+      if (!results || results.length === 0) {
+        throw new Error('Could not access page content. Try refreshing the YouTube page and reopening the extension.');
+      }
 
-        const response = results[0]?.result;
+      const response = results[0]?.result;
 
-        if (response && response.rssUrl) {
-            state.channel = {
-                id: response.channelId || 'unknown',
-                name: response.channelName || 'YouTube Channel'
+      if (response && response.rssUrl) {
+        state.channel = {
+          id: response.channelId || 'unknown',
+          name: response.channelName || 'YouTube Channel'
+        };
+        state.rssUrl = response.rssUrl;
+
+        // Fetch and Parse RSS
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+        try {
+          const rssRes = await fetch(response.rssUrl, { signal: controller.signal });
+          clearTimeout(timeoutId);
+
+          if (!rssRes.ok) throw new Error(`Fetch failed: ${rssRes.status}`);
+
+          const text = await rssRes.text();
+          const parser = new DOMParser();
+          const xmlDoc = parser.parseFromString(text, "text/xml");
+
+          const entries = Array.from(xmlDoc.querySelectorAll("entry"));
+
+          state.items = entries.map(entry => {
+            const mediaGroup = entry.getElementsByTagName("media:group")[0];
+            const thumbnail = mediaGroup?.getElementsByTagName("media:thumbnail")[0]?.getAttribute("url") || "";
+            const linkNode = entry.getElementsByTagName("link")[0];
+            const href = linkNode?.getAttribute("href") || "";
+
+            return {
+              id: entry.getElementsByTagName("id")[0]?.textContent,
+              title: entry.getElementsByTagName("title")[0]?.textContent,
+              link: href,
+              published: entry.getElementsByTagName("published")[0]?.textContent,
+              thumbnail: thumbnail
             };
-            state.rssUrl = response.rssUrl;
+          });
 
-            // Fetch and Parse RSS
-            try {
-                const rssRes = await fetch(response.rssUrl);
+          state.view = 'SUCCESS';
+          render();
 
-                if (!rssRes.ok) throw new Error(`Fetch failed: ${rssRes.status}`);
-
-                const text = await rssRes.text();
-                const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(text, "text/xml");
-
-                const entries = Array.from(xmlDoc.querySelectorAll("entry"));
-
-                state.items = entries.map(entry => {
-                     const mediaGroup = entry.getElementsByTagName("media:group")[0];
-                     const thumbnail = mediaGroup?.getElementsByTagName("media:thumbnail")[0]?.getAttribute("url") || "";
-                     const linkNode = entry.getElementsByTagName("link")[0];
-                     const href = linkNode?.getAttribute("href") || "";
-
-                     return {
-                         id: entry.getElementsByTagName("id")[0]?.textContent,
-                         title: entry.getElementsByTagName("title")[0]?.textContent,
-                         link: href,
-                         published: entry.getElementsByTagName("published")[0]?.textContent,
-                         thumbnail: thumbnail
-                     };
-                });
-
-                state.view = 'SUCCESS';
-                render();
-
-            } catch (e) {
-                console.error("RSS Error:", e);
-                state.view = 'ERROR';
-                state.error = 'Found Channel, but failed to load RSS feed.';
-                render();
-            }
-
-        } else {
-            state.view = 'ERROR';
-            state.error = 'Could not detect a Channel ID on this page.';
-            render();
+        } catch (e) {
+          clearTimeout(timeoutId);
+          console.error("RSS Error:", e);
+          state.view = 'ERROR';
+          if (e.name === 'AbortError') {
+            state.error = 'RSS feed request timed out.';
+          } else {
+            state.error = 'Found Channel, but failed to load RSS feed.';
+          }
+          render();
         }
-    } catch (e) {
-        console.error("Init Error:", e);
+
+      } else {
         state.view = 'ERROR';
-        state.error = 'Could not access page. Try refreshing YouTube.';
+        state.error = 'Could not detect a Channel ID on this page.';
         render();
+      }
+    } catch (e) {
+      console.error("Init Error:", e);
+      state.view = 'ERROR';
+      state.error = 'Could not access page. Try refreshing YouTube.';
+      render();
     }
   }
 
