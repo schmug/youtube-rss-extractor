@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "YouTube RSS Extractor",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "description": "Get the RSS feed for the current YouTube channel or video.",
   "icons": {
     "16": "icons/icon16.png",
