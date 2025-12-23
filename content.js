@@ -48,12 +48,20 @@
         }
     }
 
-    // Strategy 3: Universal Fallback (Deep Search)
+    // Strategy 3: Universal Fallback (Targeted Script Search)
     if (!channelId) {
-        // Try to find the browse endpoint in the HTML (heavy but accurate)
-        const html = document.documentElement.innerHTML;
-        const match = html.match(/"channelId":"(UC[\w-]+)"/);
-        if (match) channelId = match[1];
+        // Search YouTube's initial data scripts instead of serializing entire DOM
+        const scripts = document.querySelectorAll('script');
+        for (const script of scripts) {
+            const text = script.textContent;
+            if (text && text.includes('channelId')) {
+                const match = text.match(/"channelId":"(UC[\w-]+)"/);
+                if (match) {
+                    channelId = match[1];
+                    break;
+                }
+            }
+        }
     }
 
     // --- NAME EXTRACTION ---
