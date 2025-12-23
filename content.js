@@ -16,8 +16,10 @@
     const ownerLink = document.querySelector('ytd-video-owner-renderer a[href^="/channel/UC"], #owner a[href^="/channel/UC"]');
     if (ownerLink) {
       const href = ownerLink.getAttribute('href');
-      const match = href.match(/\/channel\/(UC[\w-]+)/);
-      if (match) channelId = match[1];
+      if (href) {
+        const match = href.match(/\/channel\/(UC[\w-]+)/);
+        if (match) channelId = match[1];
+      }
     }
 
     if (!channelId) {
@@ -29,8 +31,10 @@
     const ownerLink = document.querySelector('ytd-reel-player-overlay-renderer a[href^="/channel/UC"]');
     if (ownerLink) {
       const href = ownerLink.getAttribute('href');
-      const match = href.match(/\/channel\/(UC[\w-]+)/);
-      if (match) channelId = match[1];
+      if (href) {
+        const match = href.match(/\/channel\/(UC[\w-]+)/);
+        if (match) channelId = match[1];
+      }
     }
   }
   else if (isChannelPage) {
