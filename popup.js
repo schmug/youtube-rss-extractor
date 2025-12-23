@@ -1,6 +1,25 @@
 document.addEventListener('DOMContentLoaded', () => {
   const root = document.getElementById('root');
-  
+
+  // HTML escape utility to prevent XSS attacks
+  function escapeHtml(str) {
+    if (str == null) return '';
+    const div = document.createElement('div');
+    div.textContent = String(str);
+    return div.textContent;
+  }
+
+  // HTML attribute escape (for use in attributes)
+  function escapeAttr(str) {
+    if (str == null) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
   // Application State
   let state = {
     view: 'LOADING', // LOADING, NOT_YOUTUBE, ERROR, SUCCESS
@@ -66,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
               </svg>
           </div>
           <h2 class="state-title">Extraction Failed</h2>
-          <p class="state-desc">${state.error}</p>
+          <p class="state-desc">${escapeHtml(state.error)}</p>
         </div>
        `;
     } else if (state.view === 'SUCCESS') {
@@ -75,11 +94,11 @@ document.addEventListener('DOMContentLoaded', () => {
       rssCard.className = 'rss-card';
       rssCard.innerHTML = `
         <div class="rss-card-header">
-          <span class="channel-name" title="${state.channel.name}">${state.channel.name}</span>
+          <span class="channel-name" title="${escapeAttr(state.channel.name)}">${escapeHtml(state.channel.name)}</span>
           <span class="badge">XML</span>
         </div>
         <div class="input-wrapper">
-          <input type="text" readonly value="${state.rssUrl}" class="rss-input" />
+          <input type="text" readonly value="${escapeAttr(state.rssUrl)}" class="rss-input" />
           <button class="copy-btn" title="Copy to clipboard">
              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
@@ -124,22 +143,38 @@ document.addEventListener('DOMContentLoaded', () => {
         state.items.forEach(item => {
            const link = document.createElement('a');
            link.className = 'feed-item';
-           link.href = item.link;
+           // Validate URL to prevent javascript: protocol attacks
+           if (item.link && item.link.startsWith('http')) {
+             link.href = item.link;
+           }
            link.target = '_blank';
            link.rel = 'noopener noreferrer';
-           
+
            const date = new Date(item.published);
            const dateStr = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(date);
-           
-           link.innerHTML = `
-             <div class="thumbnail-container">
-                <img src="${item.thumbnail}" alt="Thumb" class="thumbnail-img" />
-             </div>
-             <div class="item-content">
-               <h4 class="item-title">${item.title}</h4>
-               <span class="item-date">${dateStr}</span>
-             </div>
-           `;
+
+           // Build DOM safely without innerHTML
+           const thumbContainer = document.createElement('div');
+           thumbContainer.className = 'thumbnail-container';
+           const img = document.createElement('img');
+           img.src = item.thumbnail || '';
+           img.alt = 'Thumb';
+           img.className = 'thumbnail-img';
+           thumbContainer.appendChild(img);
+
+           const contentDiv = document.createElement('div');
+           contentDiv.className = 'item-content';
+           const title = document.createElement('h4');
+           title.className = 'item-title';
+           title.textContent = item.title || '';
+           const dateSpan = document.createElement('span');
+           dateSpan.className = 'item-date';
+           dateSpan.textContent = dateStr;
+           contentDiv.appendChild(title);
+           contentDiv.appendChild(dateSpan);
+
+           link.appendChild(thumbContainer);
+           link.appendChild(contentDiv);
            feedList.appendChild(link);
         });
       }

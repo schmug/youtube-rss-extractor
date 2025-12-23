@@ -17,6 +17,9 @@
     "default_popup": "index.html",
     "default_title": "Get YouTube RSS"
   },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
   "content_scripts": [
     {
       "matches": ["https://www.youtube.com/*"],
