@@ -226,7 +226,12 @@ document.addEventListener('DOMContentLoaded', () => {
             files: ['content.js']
         });
 
-        const response = results?.[0]?.result;
+        // Handle script injection failures
+        if (!results || results.length === 0) {
+            throw new Error('Script injection failed - no results returned');
+        }
+
+        const response = results[0]?.result;
 
         if (response && response.rssUrl) {
             state.channel = {
