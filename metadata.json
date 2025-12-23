@@ -1,5 +1,0 @@
-{
-  "name": "YouTube RSS Extractor",
-  "description": "A Chrome Extension to automatically detect YouTube channel IDs and generate RSS feed links with a live preview.",
-  "requestFramePermissions": []
-}
