@@ -20,12 +20,20 @@ Popular RSS readers: [Feedly](https://feedly.com), [Inoreader](https://inoreader
 
 ## Features
 
-- Extract RSS feed URL from any YouTube channel or video page
-- One-click copy to clipboard
-- Preview latest videos directly in the popup
-- Works on channel pages, video pages, and Shorts
-- Minimal permissions (only accesses youtube.com)
-- No data collection or external requests (except to YouTube's RSS feed)
+- **Extract RSS feeds** from any YouTube channel or video page
+- **One-click copy** to clipboard
+- **Preview latest videos** directly in the popup (configurable 5-50 videos)
+- **Quick actions** to add feed to Feedly, Inoreader, or NewsBlur
+- **Smart caching** - Faster loading with configurable cache duration (1-60 minutes)
+- **Keyboard shortcut** - Press `Ctrl+Shift+R` (or `Cmd+Shift+R` on Mac) to open
+- **Settings page** - Customize videos shown and cache duration
+- **Intelligent detection** - Works on channel pages, video pages, and Shorts
+- **Playlist & YouTube Music detection** - Clear messaging for unsupported pages
+- **Retry mechanism** - Waits for dynamic content to load (SPA-friendly)
+- **Accessibility** - ARIA labels, keyboard navigation, screen reader support
+- **Minimal permissions** - Only accesses youtube.com when you click the extension
+- **No data collection** - No tracking, no external requests (except YouTube's RSS feed)
+- **No build required** - Runs directly from source (Vanilla JS, no frameworks)
 
 ## Installation
 
@@ -40,10 +48,11 @@ Popular RSS readers: [Feedly](https://feedly.com), [Inoreader](https://inoreader
 ### Usage
 
 1. Navigate to any YouTube channel or video page
-2. Click the extension icon in your toolbar
-3. The RSS feed URL will be displayed
-4. Click the copy button to copy the URL
-5. Paste into your RSS reader (Feedly, Inoreader, NewsBlur, etc.)
+2. Click the extension icon in your toolbar (or press `Ctrl+Shift+R`)
+3. The RSS feed URL will be displayed with a preview of latest videos
+4. **Quick add**: Click Feedly, Inoreader, or NewsBlur buttons for instant subscription
+5. **Or copy manually**: Click the copy button and paste into your RSS reader
+6. **Customize**: Click the Settings link in the footer to adjust preferences
 
 ## Screenshot
 
@@ -51,16 +60,20 @@ Popular RSS readers: [Feedly](https://feedly.com), [Inoreader](https://inoreader
 
 ## How It Works
 
-The extension uses multiple strategies to detect the channel ID:
+The extension uses multiple strategies with retry logic to detect the channel ID:
 
-1. **DOM Elements** - Parses video owner links and channel headers
+1. **DOM Elements** - Parses video owner links and channel headers (waits up to 3 seconds for dynamic content)
 2. **RSS Meta Tags** - Reads `<link rel="alternate" type="application/rss+xml">` on channel pages
 3. **Script Data** - Falls back to searching YouTube's initial data scripts
+
+**Smart Loading**: Uses MutationObserver to wait for dynamically loaded content, ensuring reliable extraction even on slow connections or SPA transitions.
 
 Once the channel ID is found, it constructs the RSS URL:
 ```
 https://www.youtube.com/feeds/videos.xml?channel_id=UC...
 ```
+
+**Feed Caching**: Recently fetched feeds are cached locally for faster subsequent loads (default: 5 minutes).
 
 ## Manual Method (No Extension)
 
@@ -112,35 +125,37 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UC_x5XG1OV2P6uZZ5FSM9Ttw
 ```
 youtube-rss-extractor/
 ├── manifest.json      # Extension configuration (Manifest V3)
-├── background.js      # Service worker for badge updates
-├── content.js         # Content script for channel detection
-├── popup.js           # Popup UI logic
+├── content.js         # Channel ID extraction logic (programmatically injected)
+├── popup.js           # Popup UI logic and RSS fetching
 ├── index.html         # Popup markup
 ├── styles.css         # Popup styling
+├── options.html       # Settings page
+├── options.js         # Settings logic
 └── icons/             # Extension icons
 ```
 
 ### Architecture
 
 ```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│  background.js  │────▶│   content.js    │◀────│    popup.js     │
-│ (service worker)│     │ (YouTube page)  │     │  (extension UI) │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
-        │                        │                       │
-        ▼                        ▼                       ▼
-   Badge update           Channel detection        RSS display
+┌─────────────────┐     ┌─────────────────┐
+│    popup.js     │────▶│   content.js    │
+│  (extension UI) │     │ (YouTube page)  │
+└─────────────────┘     └─────────────────┘
+         │                       │
+         ▼                       ▼
+   RSS display           Channel detection
+   Feed caching          (IIFE pattern)
+   Quick actions
 ```
 
-### Message Flow
+### Execution Flow
 
-1. User navigates to YouTube → `background.js` detects URL change
-2. `background.js` sends `CHECK_AVAILABILITY` to `content.js`
-3. `content.js` scans page for channel ID, returns availability
-4. If found, badge shows "RSS" indicator
-5. User clicks extension → `popup.js` sends `GET_CHANNEL_DETAILS`
-6. `content.js` returns channel ID, name, and RSS URL
-7. `popup.js` fetches RSS feed and displays recent videos
+1. User clicks extension icon on a YouTube page
+2. `popup.js` uses `chrome.scripting.executeScript()` to inject `content.js`
+3. `content.js` scans DOM for channel ID and returns data directly (IIFE pattern)
+4. `popup.js` receives the result and checks cache
+5. If cache valid, displays cached feed; otherwise fetches RSS XML from YouTube
+6. Displays channel info, RSS URL, and latest videos in popup
 
 ### Building
 
@@ -151,13 +166,34 @@ To test changes:
 2. Go to `chrome://extensions/`
 3. Click the refresh icon on the extension card
 
+### Testing & Linting
+
+```bash
+# Install dependencies
+npm install
+
+# Run tests
+npm test
+
+# Lint code
+npm run lint
+
+# Format code
+npm run format
+
+# Check formatting
+npm run format:check
+```
+
 ### Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/my-feature`)
-3. Commit your changes (`git commit -m 'Add my feature'`)
-4. Push to the branch (`git push origin feature/my-feature`)
-5. Open a Pull Request
+3. Make your changes and add tests
+4. Run `npm test` and `npm run lint` to ensure quality
+5. Commit your changes (`git commit -m 'Add my feature'`)
+6. Push to the branch (`git push origin feature/my-feature`)
+7. Open a Pull Request
 
 ## Privacy
 

@@ -3,6 +3,21 @@
 .env.local
 *.local
 
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Testing
+coverage/
+*.lcov
+.nyc_output/
+
+# Build outputs
+dist/
+build/
+*.zip
+
 # OS files
 .DS_Store
 *.suo
@@ -10,4 +25,19 @@
 *.njsproj
 *.sln
 *.sw?
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Claude Code
 .claude/settings.local.json
+
+# Logs
+logs/
+*.log
+npm-debug.log*
