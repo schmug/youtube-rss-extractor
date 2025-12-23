@@ -1,8 +1,11 @@
 {
   "manifest_version": 3,
   "name": "YouTube RSS Extractor",
+  "short_name": "YT RSS",
   "version": "1.3.2",
   "description": "Get the RSS feed for the current YouTube channel or video.",
+  "author": "schmug",
+  "homepage_url": "https://github.com/schmug/youtube-rss-extractor",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
@@ -10,7 +13,8 @@
   },
   "permissions": [
     "activeTab",
-    "scripting"
+    "scripting",
+    "storage"
   ],
   "action": {
     "default_popup": "index.html",
@@ -19,6 +23,19 @@
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
+    }
+  },
+  "options_page": "options.html",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+R",
+        "mac": "Command+Shift+R"
+      },
+      "description": "Open YouTube RSS Extractor"
     }
   },
   "content_security_policy": {

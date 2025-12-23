@@ -136,6 +136,11 @@ body {
   color: var(--yt-subtext);
 }
 
+.state-icon.error {
+  color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
 .state-title {
   font-size: 18px;
   font-weight: 700;
@@ -301,4 +306,59 @@ body {
   text-align: center;
   color: var(--yt-subtext);
   padding: 16px;
+}
+
+/* Quick Actions */
+.quick-actions {
+  padding: 0 16px 16px;
+}
+
+.quick-actions-header {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--yt-subtext);
+  margin: 0 0 8px;
+  letter-spacing: 0.5px;
+}
+
+.quick-actions-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.quick-action-btn {
+  flex: 1;
+  min-width: 80px;
+  padding: 8px 12px;
+  background-color: var(--yt-surface);
+  border: 1px solid var(--yt-border);
+  border-radius: 8px;
+  color: var(--yt-text);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.quick-action-btn:hover {
+  background-color: var(--yt-surface-hover);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.quick-action-btn:active {
+  transform: scale(0.98);
+}
+
+/* Settings Link */
+.settings-link {
+  color: var(--yt-red);
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.settings-link:hover {
+  opacity: 0.8;
+  text-decoration: underline;
 }

@@ -22,12 +22,58 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Application State
   let state = {
-    view: 'LOADING', // LOADING, NOT_YOUTUBE, ERROR, SUCCESS
+    view: 'LOADING', // LOADING, NOT_YOUTUBE, PLAYLIST, YOUTUBE_MUSIC, ERROR, SUCCESS
     channel: null,
     items: [],
     error: '',
-    rssUrl: ''
+    rssUrl: '',
+    settings: {
+      videosToShow: 10,
+      cacheExpiry: 5 // minutes
+    }
   };
+
+  // Load settings from storage
+  async function loadSettings() {
+    try {
+      const result = await chrome.storage.sync.get(['videosToShow', 'cacheExpiry']);
+      if (result.videosToShow) state.settings.videosToShow = result.videosToShow;
+      if (result.cacheExpiry) state.settings.cacheExpiry = result.cacheExpiry;
+    } catch (e) {
+      console.error('Failed to load settings:', e);
+    }
+  }
+
+  // Cache management
+  async function getCachedFeed(rssUrl) {
+    try {
+      const result = await chrome.storage.local.get([rssUrl]);
+      if (result[rssUrl]) {
+        const cached = result[rssUrl];
+        const now = Date.now();
+        const expiryMs = state.settings.cacheExpiry * 60 * 1000;
+        if (now - cached.timestamp < expiryMs) {
+          return cached.data;
+        }
+      }
+    } catch (e) {
+      console.error('Cache read error:', e);
+    }
+    return null;
+  }
+
+  async function setCachedFeed(rssUrl, data) {
+    try {
+      await chrome.storage.local.set({
+        [rssUrl]: {
+          timestamp: Date.now(),
+          data: data
+        }
+      });
+    } catch (e) {
+      console.error('Cache write error:', e);
+    }
+  }
 
   // Render Function
   function render() {
@@ -76,10 +122,34 @@ document.addEventListener('DOMContentLoaded', () => {
           <p class="state-desc">Navigate to a YouTube channel or video page to extract the RSS feed.</p>
         </div>
        `;
+    } else if (state.view === 'PLAYLIST') {
+      main.innerHTML = `
+        <div class="state-container">
+          <div class="state-icon">
+             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+              </svg>
+          </div>
+          <h2 class="state-title">Playlist Detected</h2>
+          <p class="state-desc">Playlists don't have RSS feeds. Navigate to a channel page or video to get the channel's RSS feed.</p>
+        </div>
+       `;
+    } else if (state.view === 'YOUTUBE_MUSIC') {
+      main.innerHTML = `
+        <div class="state-container">
+          <div class="state-icon">
+             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+              </svg>
+          </div>
+          <h2 class="state-title">YouTube Music</h2>
+          <p class="state-desc">YouTube Music is not supported. Please visit regular YouTube (youtube.com) instead.</p>
+        </div>
+       `;
     } else if (state.view === 'ERROR') {
       main.innerHTML = `
         <div class="state-container">
-           <div class="state-icon" style="color: #ef4444; background-color: rgba(239, 68, 68, 0.1)">
+           <div class="state-icon error">
              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -98,8 +168,8 @@ document.addEventListener('DOMContentLoaded', () => {
           <span class="badge">XML</span>
         </div>
         <div class="input-wrapper">
-          <input type="text" readonly value="${escapeAttr(state.rssUrl)}" class="rss-input" />
-          <button class="copy-btn" title="Copy to clipboard">
+          <input type="text" readonly value="${escapeAttr(state.rssUrl)}" class="rss-input" aria-label="RSS feed URL" />
+          <button class="copy-btn" title="Copy to clipboard" aria-label="Copy RSS URL to clipboard">
              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
             </svg>
@@ -118,15 +188,64 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
           await navigator.clipboard.writeText(input.value);
           copyBtn.innerHTML = checkSvg;
-          setTimeout(() => { copyBtn.innerHTML = clipboardSvg; }, 2000);
+          copyBtn.setAttribute('aria-label', 'Copied!');
+          setTimeout(() => {
+            copyBtn.innerHTML = clipboardSvg;
+            copyBtn.setAttribute('aria-label', 'Copy RSS URL to clipboard');
+          }, 2000);
         } catch (err) {
           console.error('Failed to copy to clipboard:', err);
           copyBtn.innerHTML = errorSvg;
-          setTimeout(() => { copyBtn.innerHTML = clipboardSvg; }, 2000);
+          copyBtn.setAttribute('aria-label', 'Failed to copy');
+          setTimeout(() => {
+            copyBtn.innerHTML = clipboardSvg;
+            copyBtn.setAttribute('aria-label', 'Copy RSS URL to clipboard');
+          }, 2000);
         }
       });
 
       main.appendChild(rssCard);
+
+      // Quick Actions
+      const quickActions = document.createElement('div');
+      quickActions.className = 'quick-actions';
+      quickActions.innerHTML = `
+        <h3 class="quick-actions-header">Quick Add To:</h3>
+        <div class="quick-actions-buttons">
+          <button class="quick-action-btn feedly" data-reader="feedly" title="Add to Feedly">
+            Feedly
+          </button>
+          <button class="quick-action-btn inoreader" data-reader="inoreader" title="Add to Inoreader">
+            Inoreader
+          </button>
+          <button class="quick-action-btn newsblur" data-reader="newsblur" title="Add to NewsBlur">
+            NewsBlur
+          </button>
+        </div>
+      `;
+
+      // Quick action event listeners
+      quickActions.querySelectorAll('.quick-action-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const reader = btn.dataset.reader;
+          let url = '';
+          const encodedRss = encodeURIComponent(state.rssUrl);
+
+          if (reader === 'feedly') {
+            url = `https://feedly.com/i/subscription/feed/${encodedRss}`;
+          } else if (reader === 'inoreader') {
+            url = `https://www.inoreader.com/?add_feed=${encodedRss}`;
+          } else if (reader === 'newsblur') {
+            url = `https://www.newsblur.com/?url=${encodedRss}`;
+          }
+
+          if (url) {
+            chrome.tabs.create({ url });
+          }
+        });
+      });
+
+      main.appendChild(quickActions);
 
       // Feed List
       const feedList = document.createElement('div');
@@ -140,12 +259,20 @@ document.addEventListener('DOMContentLoaded', () => {
         listHeader.textContent = 'Latest Videos';
         feedList.appendChild(listHeader);
 
-        state.items.forEach(item => {
+        // Limit videos shown based on settings
+        const itemsToShow = state.items.slice(0, state.settings.videosToShow);
+
+        itemsToShow.forEach(item => {
           const link = document.createElement('a');
           link.className = 'feed-item';
           // Validate URL to prevent javascript: protocol attacks
-          if (item.link && item.link.startsWith('http')) {
-            link.href = item.link;
+          try {
+            const url = new URL(item.link);
+            if (url.protocol === 'http:' || url.protocol === 'https:') {
+              link.href = item.link;
+            }
+          } catch (e) {
+            // Invalid URL, skip setting href
           }
           link.target = '_blank';
           link.rel = 'noopener noreferrer';
@@ -158,7 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
           thumbContainer.className = 'thumbnail-container';
           const img = document.createElement('img');
           img.src = item.thumbnail || '';
-          img.alt = 'Thumb';
+          img.alt = item.title ? `Thumbnail for ${item.title}` : 'Video thumbnail';
           img.className = 'thumbnail-img';
           thumbContainer.appendChild(img);
 
@@ -186,7 +313,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // Footer
     const footer = document.createElement('div');
     footer.className = 'footer';
-    footer.textContent = 'Made with Vanilla JS';
+
+    const footerText = document.createElement('span');
+    footerText.textContent = 'Made with Vanilla JS';
+
+    const settingsLink = document.createElement('a');
+    settingsLink.href = '#';
+    settingsLink.textContent = 'Settings';
+    settingsLink.className = 'settings-link';
+    settingsLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      chrome.runtime.openOptionsPage();
+    });
+
+    footer.appendChild(footerText);
+    footer.appendChild(document.createTextNode(' • '));
+    footer.appendChild(settingsLink);
+
     container.appendChild(footer);
 
     root.appendChild(container);
@@ -194,6 +337,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialization Logic
   async function init() {
+    // Load settings first
+    await loadSettings();
+
     // Check for Chrome API
     if (typeof chrome === 'undefined' || !chrome.tabs || !chrome.scripting) {
       state.view = 'ERROR';
@@ -213,7 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    if (!tab.url || !tab.url.includes('youtube.com')) {
+    if (!tab.url || !(tab.url.includes('youtube.com') || tab.url.includes('music.youtube.com'))) {
       state.view = 'NOT_YOUTUBE';
       render();
       return;
@@ -233,12 +379,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const response = results[0]?.result;
 
+      // Handle special error types
+      if (response && response.error) {
+        if (response.error === 'YOUTUBE_MUSIC') {
+          state.view = 'YOUTUBE_MUSIC';
+          render();
+          return;
+        } else if (response.error === 'PLAYLIST') {
+          state.view = 'PLAYLIST';
+          render();
+          return;
+        }
+      }
+
       if (response && response.rssUrl) {
         state.channel = {
           id: response.channelId || 'unknown',
           name: response.channelName || 'YouTube Channel'
         };
         state.rssUrl = response.rssUrl;
+
+        // Check cache first
+        const cached = await getCachedFeed(response.rssUrl);
+        if (cached) {
+          state.items = cached;
+          state.view = 'SUCCESS';
+          render();
+          return;
+        }
 
         // Fetch and Parse RSS
         const controller = new AbortController();
@@ -248,7 +416,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const rssRes = await fetch(response.rssUrl, { signal: controller.signal });
           clearTimeout(timeoutId);
 
-          if (!rssRes.ok) throw new Error(`Fetch failed: ${rssRes.status}`);
+          if (!rssRes.ok) throw new Error(`RSS feed request failed with status ${rssRes.status}`);
 
           const text = await rssRes.text();
           const parser = new DOMParser();
@@ -256,7 +424,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
           const entries = Array.from(xmlDoc.querySelectorAll("entry"));
 
-          state.items = entries.map(entry => {
+          const items = entries.map(entry => {
             const mediaGroup = entry.getElementsByTagName("media:group")[0];
             const thumbnail = mediaGroup?.getElementsByTagName("media:thumbnail")[0]?.getAttribute("url") || "";
             const linkNode = entry.getElementsByTagName("link")[0];
@@ -271,6 +439,11 @@ document.addEventListener('DOMContentLoaded', () => {
             };
           });
 
+          state.items = items;
+
+          // Cache the feed
+          await setCachedFeed(response.rssUrl, items);
+
           state.view = 'SUCCESS';
           render();
 
@@ -279,22 +452,22 @@ document.addEventListener('DOMContentLoaded', () => {
           console.error("RSS Error:", e);
           state.view = 'ERROR';
           if (e.name === 'AbortError') {
-            state.error = 'RSS feed request timed out.';
+            state.error = 'RSS feed request timed out. Please try again.';
           } else {
-            state.error = 'Found Channel, but failed to load RSS feed.';
+            state.error = 'Found channel, but failed to load RSS feed. The feed might be temporarily unavailable.';
           }
           render();
         }
 
       } else {
         state.view = 'ERROR';
-        state.error = 'Could not detect a Channel ID on this page.';
+        state.error = 'Could not detect a channel ID on this page. Try refreshing the page or make sure you\'re on a channel or video page (not a playlist or home page).';
         render();
       }
     } catch (e) {
       console.error("Init Error:", e);
       state.view = 'ERROR';
-      state.error = 'Could not access page. Try refreshing YouTube.';
+      state.error = 'Could not access page content. Try refreshing the YouTube page and reopening the extension.';
       render();
     }
   }

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YouTube RSS Extractor - Settings</title>
+    <style>
+      :root {
+        --yt-bg: #0f0f0f;
+        --yt-surface: #272727;
+        --yt-surface-hover: #3f3f3f;
+        --yt-text: #f1f1f1;
+        --yt-subtext: #aaaaaa;
+        --yt-red: #ff0000;
+        --yt-border: rgba(255, 255, 255, 0.1);
+        --yt-green: #22c55e;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 20px;
+        background-color: var(--yt-bg);
+        color: var(--yt-text);
+        font-family: 'Roboto', 'Arial', sans-serif;
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+      }
+
+      header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 32px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--yt-border);
+      }
+
+      .logo-icon {
+        width: 48px;
+        height: 48px;
+        background-color: var(--yt-red);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 700;
+      }
+
+      .subtitle {
+        margin: 4px 0 0 0;
+        font-size: 14px;
+        color: var(--yt-subtext);
+      }
+
+      .section {
+        background-color: var(--yt-surface);
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 16px;
+        border: 1px solid var(--yt-border);
+      }
+
+      .section-title {
+        margin: 0 0 16px 0;
+        font-size: 16px;
+        font-weight: 600;
+      }
+
+      .setting-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+
+      .setting-row:last-child {
+        margin-bottom: 0;
+      }
+
+      .setting-label {
+        flex: 1;
+      }
+
+      .setting-label h3 {
+        margin: 0 0 4px 0;
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      .setting-label p {
+        margin: 0;
+        font-size: 12px;
+        color: var(--yt-subtext);
+      }
+
+      .setting-control {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      input[type="number"] {
+        width: 80px;
+        padding: 8px 12px;
+        background-color: rgba(0, 0, 0, 0.5);
+        border: 1px solid var(--yt-border);
+        border-radius: 8px;
+        color: var(--yt-text);
+        font-size: 14px;
+      }
+
+      input[type="number"]:focus {
+        outline: none;
+        border-color: var(--yt-red);
+      }
+
+      .btn {
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.2s;
+      }
+
+      .btn-primary {
+        background-color: var(--yt-red);
+        color: white;
+      }
+
+      .btn-primary:hover {
+        opacity: 0.9;
+      }
+
+      .btn-secondary {
+        background-color: var(--yt-surface-hover);
+        color: var(--yt-text);
+        border: 1px solid var(--yt-border);
+      }
+
+      .btn-secondary:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+
+      .actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        margin-top: 24px;
+      }
+
+      .success-message {
+        background-color: rgba(34, 197, 94, 0.1);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+        color: var(--yt-green);
+        padding: 12px;
+        border-radius: 8px;
+        margin-top: 16px;
+        text-align: center;
+        display: none;
+      }
+
+      .success-message.show {
+        display: block;
+      }
+
+      .keyboard-shortcut {
+        font-family: monospace;
+        background-color: rgba(0, 0, 0, 0.5);
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        border: 1px solid var(--yt-border);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="logo-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7m-6 0a1 1 0 11-2 0 1 1 0 012 0z" />
+          </svg>
+        </div>
+        <div>
+          <h1>Settings</h1>
+          <p class="subtitle">YouTube RSS Extractor</p>
+        </div>
+      </header>
+
+      <div class="section">
+        <h2 class="section-title">Display Options</h2>
+
+        <div class="setting-row">
+          <div class="setting-label">
+            <h3>Videos to Show</h3>
+            <p>Number of videos displayed in the popup</p>
+          </div>
+          <div class="setting-control">
+            <input type="number" id="videosToShow" min="5" max="50" value="10" />
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2 class="section-title">Performance</h2>
+
+        <div class="setting-row">
+          <div class="setting-label">
+            <h3>Cache Duration</h3>
+            <p>How long to cache RSS feeds (in minutes)</p>
+          </div>
+          <div class="setting-control">
+            <input type="number" id="cacheExpiry" min="1" max="60" value="5" />
+            <span>min</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2 class="section-title">Keyboard Shortcuts</h2>
+
+        <div class="setting-row">
+          <div class="setting-label">
+            <h3>Open Extension</h3>
+            <p>Quickly open the RSS extractor</p>
+          </div>
+          <div class="setting-control">
+            <span class="keyboard-shortcut">Ctrl+Shift+R</span>
+          </div>
+        </div>
+
+        <p style="font-size: 12px; color: var(--yt-subtext); margin-top: 12px;">
+          To customize keyboard shortcuts, go to <code>chrome://extensions/shortcuts</code>
+        </p>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-secondary" id="resetBtn">Reset to Defaults</button>
+        <button class="btn btn-primary" id="saveBtn">Save Settings</button>
+      </div>
+
+      <div class="success-message" id="successMessage">
+        Settings saved successfully!
+      </div>
+    </div>
+
+    <script src="options.js"></script>
+  </body>
+</html>
