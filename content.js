@@ -24,7 +24,10 @@
 
     if (!channelId) {
       const metaId = document.querySelector('meta[itemprop="channelId"]');
-      if (metaId) channelId = metaId.getAttribute('content');
+      if (metaId) {
+        const content = metaId.getAttribute('content');
+        if (content) channelId = content;
+      }
     }
   }
   else if (isShorts) {
@@ -79,7 +82,10 @@
 
   if (!channelName) {
     const authorNameMeta = document.querySelector('[itemprop="author"] [itemprop="name"]');
-    if (authorNameMeta) channelName = authorNameMeta.getAttribute('content');
+    if (authorNameMeta) {
+      const content = authorNameMeta.getAttribute('content');
+      if (content) channelName = content;
+    }
   }
 
   // --- FINAL URL CONSTRUCTION ---
