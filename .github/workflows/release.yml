@@ -2,6 +2,8 @@ name: Create Release
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*'
 
@@ -14,32 +16,61 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Get version from tag
+      - name: Get version
         id: version
-        env:
-          REF: ${{ github.ref }}
         run: |
-          VERSION="${REF#refs/tags/}"
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            VERSION="${{ github.ref_name }}"
+            # Remove 'v' prefix if it exists to normalize
+            VERSION_NUM="${VERSION#v}"
+          else
+            # Extract from manifest.json
+            VERSION_NUM=$(jq -r .version manifest.json)
+            VERSION="v${VERSION_NUM}"
+          fi
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "VERSION_NUM=$VERSION_NUM" >> $GITHUB_OUTPUT
 
-      - name: Create extension zip
+      - name: Check if release exists
+        id: check_release
+        run: |
+          if git rev-parse "$VERSION" >/dev/null 2>&1; then
+            if [[ "${{ github.ref_type }}" == "tag" ]]; then
+              echo "Tag already exists, but this is a tag push, proceeding."
+              echo "EXISTS=false" >> $GITHUB_OUTPUT
+            else
+              echo "Tag $VERSION already exists. Skipping release creation."
+              echo "EXISTS=true" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "EXISTS=false" >> $GITHUB_OUTPUT
+          fi
         env:
           VERSION: ${{ steps.version.outputs.VERSION }}
+
+      - name: Create extension zip
+        if: steps.check_release.outputs.EXISTS == 'false'
+        env:
+          VERSION_NUM: ${{ steps.version.outputs.VERSION_NUM }}
         run: |
-          # Create zip excluding dev/docs files
-          zip -r "youtube-rss-extractor-${VERSION}.zip" \
+          zip -r "youtube-rss-extractor-${VERSION_NUM}.zip" \
             manifest.json \
             index.html \
             styles.css \
-            popup.js \
+            popup.js\
             content.js \
             icons/
 
       - name: Create GitHub Release
+        if: steps.check_release.outputs.EXISTS == 'false'
         uses: softprops/action-gh-release@v1
         with:
-          files: youtube-rss-extractor-${{ steps.version.outputs.VERSION }}.zip
+          tag_name: ${{ steps.version.outputs.VERSION }}
+          name: Release ${{ steps.version.outputs.VERSION }}
+          files: youtube-rss-extractor-${{ steps.version.outputs.VERSION_NUM }}.zip
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
