@@ -98,17 +98,11 @@
     };
   }
 
-  // Listen for messages from the popup or background script
+  // Listen for messages from the popup
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    // Popup requesting full details
     if (request.type === 'GET_CHANNEL_DETAILS') {
       const details = getChannelDetails();
       sendResponse(details);
-    } 
-    // Background script checking if we should light up the icon
-    else if (request.type === 'CHECK_AVAILABILITY') {
-      const details = getChannelDetails();
-      sendResponse({ hasFeed: !!details.rssUrl });
     }
     return true;
   });
