@@ -1,0 +1,45 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get version from tag
+        id: version
+        env:
+          REF: ${{ github.ref }}
+        run: |
+          VERSION="${REF#refs/tags/}"
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create extension zip
+        env:
+          VERSION: ${{ steps.version.outputs.VERSION }}
+        run: |
+          # Create zip excluding dev/docs files
+          zip -r "youtube-rss-extractor-${VERSION}.zip" \
+            manifest.json \
+            index.html \
+            styles.css \
+            popup.js \
+            content.js \
+            icons/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: youtube-rss-extractor-${{ steps.version.outputs.VERSION }}.zip
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
