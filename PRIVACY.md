@@ -19,7 +19,8 @@ The extension requests minimal permissions:
 
 | Permission | Purpose |
 |------------|---------|
-| `activeTab` | Read the current YouTube page to extract the channel ID when you click the extension |
+| `activeTab` | Temporary access to the current YouTube page when you click the extension. |
+| `scripting` | Allows the extension to read the YouTube page source code to extract Channel IDs and RSS metadata. |
 
 ## Network Requests
 
@@ -51,4 +52,4 @@ https://github.com/schmug/youtube-rss-extractor/issues
 
 ---
 
-*Last updated: December 2025*
+*Last updated: December 23, 2025*
