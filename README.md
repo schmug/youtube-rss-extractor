@@ -167,6 +167,8 @@ This extension:
 - Does not make requests to any third-party servers
 - Only fetches YouTube's public RSS feeds (when you open the popup)
 
+See [PRIVACY.md](PRIVACY.md) for the full privacy policy.
+
 ## License
 
 MIT License - see [LICENSE](LICENSE) for details.
