@@ -45,9 +45,9 @@ Popular RSS readers: [Feedly](https://feedly.com), [Inoreader](https://inoreader
 4. Click the copy button to copy the URL
 5. Paste into your RSS reader (Feedly, Inoreader, NewsBlur, etc.)
 
-## Screenshots
+## Screenshot
 
-*Screenshots coming soon* - To contribute: take screenshots of the extension in action and add them to the `screenshots/` directory.
+<img src="screenshots/popup.png" alt="Extension popup showing Anthropic's YouTube RSS feed" width="350">
 
 ## How It Works
 
